@@ -95,7 +95,7 @@ public class SvnCommand extends SCMCommand implements Subversion {
 
     public List<SvnExternal> getAllExternalURLs() {
         CommandLine svnExternalCommand = svn(true)
-                .withArgs("propget", "--non-interactive", "svn:externals", "-R")
+                .withArgs("propget", "--non-interactive", "--trust-server-cert", "svn:externals", "-R")
                 .withArg(repositoryUrl);
         ConsoleResult result = executeCommand(svnExternalCommand);
         String svnExternalConsoleOut = result.outputAsString();
@@ -117,7 +117,7 @@ public class SvnCommand extends SCMCommand implements Subversion {
 
     CommandLine buildSvnLogCommandForLatestOne() {
         return svn(true)
-                .withArgs("log", "--non-interactive", "--xml", "-v", "--limit", "1")
+                .withArgs("log", "--non-interactive", "--trust-server-cert", "--xml", "-v", "--limit", "1")
                 .withArg(repositoryUrl);
     }
 
@@ -134,7 +134,7 @@ public class SvnCommand extends SCMCommand implements Subversion {
 
     public List<Modification> modificationsSince(SubversionRevision subversionRevision) {
         CommandLine command = svn(true)
-                .withArgs("log", "--non-interactive", "--xml", "-v", "-r", "HEAD:" + subversionRevision.getRevision())
+                .withArgs("log", "--non-interactive", "--trust-server-cert", "--xml", "-v", "-r", "HEAD:" + subversionRevision.getRevision())
                 .withArg(repositoryUrl);
         ConsoleResult result = executeCommand(command);
         String output = result.outputAsString();
@@ -166,21 +166,21 @@ public class SvnCommand extends SCMCommand implements Subversion {
     public SvnInfo remoteInfo(SAXBuilder builder) {
         SvnInfo svnInfo = new SvnInfo();
         svnInfo.parse(executeCommand(svn(true)
-                .withArgs("info", "--xml", "--non-interactive")
+                .withArgs("info", "--xml", "--non-interactive", "--trust-server-cert")
                 .withArg(repositoryUrl)).outputAsString(), builder);
         return svnInfo;
     }
 
     public SvnInfo workingDirInfo(File workingDir) throws IOException {
         SvnInfo svnInfo = new SvnInfo();
-        svnInfo.parse(executeCommand(svn(false).withArgs("info", "--xml", "--non-interactive").withArg(workingDir.getCanonicalPath())).outputForDisplayAsString(), getBuilder());
+        svnInfo.parse(executeCommand(svn(false).withArgs("info", "--xml", "--non-interactive", "--trust-server-cert").withArg(workingDir.getCanonicalPath())).outputForDisplayAsString(), getBuilder());
         return svnInfo;
     }
 
     public SubversionRevision checkoutTo(ProcessOutputStreamConsumer outputStreamConsumer, File targetFolder,
                                          SubversionRevision revision) {
         CommandLine command = svn(true)
-                .withArgs("checkout", "--non-interactive", "-r", revision.getRevision())
+                .withArgs("checkout", "--non-interactive", "--trust-server-cert", "-r", revision.getRevision())
                 .withArg(repositoryUrl)
                 .withArg(targetFolder.getAbsolutePath());
         executeCommand(command, outputStreamConsumer);
@@ -190,7 +190,7 @@ public class SvnCommand extends SCMCommand implements Subversion {
 
     public void updateTo(ProcessOutputStreamConsumer outputStreamConsumer, File workingFolder,
                          SubversionRevision targetRevision) {
-        CommandLine command = svn(true).withArgs("update", "--non-interactive", "-r", targetRevision.getRevision(),
+        CommandLine command = svn(true).withArgs("update", "--non-interactive", "--trust-server-cert", "-r", targetRevision.getRevision(),
                 workingFolder.getAbsolutePath());
         executeCommand(command, outputStreamConsumer);
     }
@@ -272,13 +272,13 @@ public class SvnCommand extends SCMCommand implements Subversion {
     }
 
     public void commit(ProcessOutputStreamConsumer output, File workingDir, String message) {
-        CommandLine line = svn(true).withArgs("commit", "--non-interactive", "-m", message,
+        CommandLine line = svn(true).withArgs("commit", "--non-interactive", "--trust-server-cert", "-m", message,
                 workingDir.getAbsolutePath());
         executeCommand(line, output);
     }
 
     public void propset(File workingDir, String propName, String propValue) {
-        CommandLine line = svn(true).withArgs("propset", "--non-interactive", propName, propValue, ".");
+        CommandLine line = svn(true).withArgs("propset", "--non-interactive", "--trust-server-cert", propName, propValue, ".");
         line.setWorkingDir(workingDir);
         executeCommand(line);
     }
@@ -286,7 +286,7 @@ public class SvnCommand extends SCMCommand implements Subversion {
     public HashMap<String, String> createUrlToRemoteUUIDMap(Set<SvnMaterial> svnMaterials) {
         HashMap<String, String> urlToUUIDMap = new HashMap<String, String>();
         for (SvnMaterial svnMaterial : svnMaterials) {
-            CommandLine command = svnExecutable().withArgs("info", "--xml");
+            CommandLine command = svnExecutable().withArgs("info", "--xml", "--trust-server-cert");
             addCredentials(command, new StringArgument(svnMaterial.getUserName()), new PasswordArgument(svnMaterial.getPassword()));
             final String queryUrl = svnMaterial.getUrl();
             command.withArg(queryUrl);
